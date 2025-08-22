@@ -1,10 +1,8 @@
 package org.tools.web.parser;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,7 +11,7 @@ import java.util.List;
 @Service
 public class ThreadFileSanitizer {
 
-  public void createNewFileWithThreadLineAndStatusFromNextLineIntoSameLine(List<String> allLines) throws IOException {
+  public List<String> sanitiseThreadDumpToParsableLines(List<String> allLines) throws IOException {
     Iterator<String> iterator = allLines.iterator();
     List<String> buffer = new ArrayList<>();
 
@@ -40,8 +38,7 @@ public class ThreadFileSanitizer {
       }
     }
 
-    String outputFile = "./parsed.txt";
-    FileUtils.writeLines(new File(outputFile), buffer);
+    return buffer;
   }
 
 }

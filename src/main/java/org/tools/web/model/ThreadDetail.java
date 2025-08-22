@@ -1,0 +1,155 @@
+package org.tools.web.model;
+
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "ThreadDetail")
+public class ThreadDetail {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private int id;
+
+  @Column(name = "name")
+  private String name;
+
+  @Column(name = "priority")
+  private Integer priority;
+
+  @Column(name = "os_priority")
+  private Integer osPriority;
+
+  @Column(name = "thread_number")
+  private Integer threadNumber;
+
+  @Column(name = "cpu")
+  private Float cpu;
+
+  @Column(name = "elapsed")
+  private Float elapsed;
+
+  @Column(name = "tid")
+  private String tid;
+
+  @Column(name = "nid")
+  private String nid;
+
+  @Column(name = "address")
+  private String address;
+
+  @Column(name = "waiting_condition")
+  private String waitingCondition;
+
+  @Column(name = "thread_state")
+  private String threadState;
+
+  @Column(name = "pool_name")
+  private String poolName;
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public Integer getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Integer priority) {
+    this.priority = priority;
+  }
+
+  public Integer getThreadNumber() {
+    return threadNumber;
+  }
+
+  public void setThreadNumber(Integer threadNumber) {
+    this.threadNumber = threadNumber;
+  }
+
+  public Float getCpu() {
+    return cpu;
+  }
+
+  public void setCpu(Float cpu) {
+    this.cpu = cpu;
+  }
+
+  public Float getElapsed() {
+    return elapsed;
+  }
+
+  public void setElapsed(Float elapsed) {
+    this.elapsed = elapsed;
+  }
+
+  public String getTid() {
+    return tid;
+  }
+
+  public void setTid(String tid) {
+    this.tid = tid;
+  }
+
+  public String getNid() {
+    return nid;
+  }
+
+  public void setNid(String nid) {
+    this.nid = nid;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public Integer getOsPriority() {
+    return osPriority;
+  }
+
+  public void setOsPriority(Integer osPriority) {
+    this.osPriority = osPriority;
+  }
+
+  public String getWaitingCondition() {
+    return waitingCondition;
+  }
+
+  public void setWaitingCondition(String waitingCondition) {
+    this.waitingCondition = waitingCondition;
+  }
+
+  public String getThreadState() {
+    return threadState;
+  }
+
+  public void setThreadState(String threadState) {
+    this.threadState = threadState;
+  }
+
+  public String getPoolName() {
+    return poolName;
+  }
+
+  public void setPoolName(String poolName) {
+    this.poolName = poolName;
+  }
+}
+

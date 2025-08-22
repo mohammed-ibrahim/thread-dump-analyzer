@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Service
 public class ThreadDumpParser {
 
-  public String[] splitAfterSecondQuote(String input) {
+  private String[] splitAfterSecondQuote(String input) {
     int firstQuote = input.indexOf('"');
     if (firstQuote == -1) return new String[]{input, ""};
 
@@ -26,7 +26,7 @@ public class ThreadDumpParser {
     return new String[]{before, after};
   }
 
-  public String trimThreadNameQuotes(String threadName) {
+  private String trimThreadNameQuotes(String threadName) {
     if (threadName != null && threadName.length() >= 2 &&
         threadName.startsWith("\"") && threadName.endsWith("\"")) {
       return threadName.substring(1, threadName.length() - 1);
@@ -34,7 +34,7 @@ public class ThreadDumpParser {
     return threadName; // return unchanged if no surrounding quotes
   }
 
-  public  ThreadDetail parseThreadLineV2(String line) {
+  public ThreadDetail parseThreadLineV2(String line) {
 
     ThreadDetail threadDetail = new ThreadDetail();
     String[] parts = splitAfterSecondQuote(line);
@@ -81,7 +81,7 @@ public class ThreadDumpParser {
     return null;
   }
 
-  public String reduceMultipleSpaces(String input) {
+  private String reduceMultipleSpaces(String input) {
     if (input == null) return null;
     return input.replaceAll("\\s{2,}", " "); // replaces 2 or more whitespace chars with one space
   }
@@ -126,7 +126,7 @@ public class ThreadDumpParser {
     return null;
   }
 
-  public String getTokenWithKey(String key, List<String> parts, boolean removeAlphaCharacters) {
+  private String getTokenWithKey(String key, List<String> parts, boolean removeAlphaCharacters) {
     Optional<String> first = parts.stream().filter(a -> a.startsWith(key)).findFirst();
     if (first.isPresent()) {
       String firstToken = first.get();
@@ -142,7 +142,7 @@ public class ThreadDumpParser {
     return null;
   }
 
-  public Integer getTokenWithKeyAsInteger(String key, List<String> parts, boolean removeAlphaCharacters) {
+  private Integer getTokenWithKeyAsInteger(String key, List<String> parts, boolean removeAlphaCharacters) {
     String value = getTokenWithKey(key, parts, removeAlphaCharacters);
 
     if (value != null) {
@@ -152,7 +152,7 @@ public class ThreadDumpParser {
     return null;
   }
 
-  public Float getTokenWithKeyAsFloat(String key, List<String> parts, boolean removeAlphaCharacters) {
+  private Float getTokenWithKeyAsFloat(String key, List<String> parts, boolean removeAlphaCharacters) {
     String value = getTokenWithKey(key, parts, removeAlphaCharacters);
 
     if (value != null) {
@@ -162,12 +162,12 @@ public class ThreadDumpParser {
     return null;
   }
 
-  public String removeAlphabets(String input) {
+  private String removeAlphabets(String input) {
     if (input == null) return null;
     return input.replaceAll("[a-zA-Z]", "");
   }
 
-  public List<ThreadDetail> threadLinesToThreadDetails(List<String> lines) {
+  private List<ThreadDetail> threadLinesToThreadDetails(List<String> lines) {
     return lines.stream().map(line -> parseThreadLineV2(line)).collect(Collectors.toList());
   }
 }

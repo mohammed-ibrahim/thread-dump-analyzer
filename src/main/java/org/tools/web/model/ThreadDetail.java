@@ -3,6 +3,8 @@ package org.tools.web.model;
 
 import jakarta.persistence.*;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "ThreadDetail", indexes = {
     @Index(columnList = "id", name = "tdump_id"),
@@ -55,6 +57,18 @@ public class ThreadDetail {
 
   @Column(name = "file_id")
   private String fileIdentifier;
+
+  @Column(name = "hostname")
+  private String hostname;
+
+  @Column(name = "process_id")
+  private Integer processID;
+
+  @Column(name = "service_name")
+  private String serviceName;
+
+  @Column(name = "dump_date")
+  private Date dumpDate;
 
   public int getId() {
     return id;
@@ -174,6 +188,38 @@ public class ThreadDetail {
 
   public void setFileIdentifier(String fileIdentifier) {
     this.fileIdentifier = fileIdentifier;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
+
+  public Integer getProcessID() {
+    return processID;
+  }
+
+  public void setProcessID(Integer processID) {
+    this.processID = processID;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  public Date getDumpDate() {
+    return dumpDate;
+  }
+
+  public void setDumpDate(Date dumpDate) {
+    this.dumpDate = dumpDate;
   }
 }
 

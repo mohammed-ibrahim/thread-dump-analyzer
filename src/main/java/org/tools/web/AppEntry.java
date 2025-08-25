@@ -21,7 +21,7 @@ public class AppEntry {
             System.out.println(beanName);
         }
 
-        DbUtils bean = ctx.getBean(DbUtils.class);
-        bean.importFile(null);
+        Main main = ctx.getBean(Main.class);
+        main.beingImport();
     }
 }

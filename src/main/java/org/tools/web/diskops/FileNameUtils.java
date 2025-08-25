@@ -1,6 +1,7 @@
 package org.tools.web.diskops;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+@Component
 public class FileNameUtils {
 
 

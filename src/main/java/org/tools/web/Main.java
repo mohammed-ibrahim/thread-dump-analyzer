@@ -1,8 +1,12 @@
 package org.tools.web;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tools.web.dbops.DbUtils;
+import org.tools.web.diskops.DumpFileDetails;
+import org.tools.web.diskops.FileNameUtils;
 import org.tools.web.model.ThreadDetail;
 import org.tools.web.parser.ThreadDumpParser;
 import org.tools.web.parser.ThreadFileSanitizer;
@@ -21,36 +25,63 @@ public class Main {
 
   private ThreadFileSanitizer threadFileSanitizer;
 
+  private FileNameUtils fileNameUtils;
+
+  private DbUtils dbUtils;
+
   @Autowired
-  public Main(ZipExtractor zipExtractor, ThreadFileSanitizer threadFileSanitizer, ThreadDumpParser threadDumpParser) {
+  public Main(ZipExtractor zipExtractor,
+              ThreadFileSanitizer threadFileSanitizer,
+              ThreadDumpParser threadDumpParser,
+              FileNameUtils fileNameUtils,
+              DbUtils dbUtils) {
     this.zipExtractor = zipExtractor;
     this.threadDumpParser = threadDumpParser;
     this.threadFileSanitizer = threadFileSanitizer;
+    this.fileNameUtils = fileNameUtils;
+    this.dbUtils = dbUtils;
   }
 
   public void beingImport() {
     String directoryStr = System.getProperty("zipdump.directory");
+
+    if (StringUtils.isBlank(directoryStr)) {
+      throw new RuntimeException("zipdump.directory not set");
+    }
+
     File directory = new File(directoryStr);
     File[] files = directory.listFiles(pathname -> pathname.getName().endsWith(".zip"));
 
     for (File zipFile : files) {
       List<File> filesInsideZip = this.zipExtractor.unZipToTempDirectory(zipFile);
       for (File threadDumpFile : filesInsideZip) {
-        processThreadDumpFile(threadDumpFile);
+        DumpFileDetails dumpFileDetails = fileNameUtils.getDumpFileDetails(threadDumpFile.getName());
+        List<ThreadDetail> threadDetails = processThreadDumpFile(threadDumpFile, dumpFileDetails);
+
       }
     }
   }
 
-  private List<ThreadDetail> processThreadDumpFile(File threadDumpFile) {
+  private List<ThreadDetail> processThreadDumpFile(File threadDumpFile, DumpFileDetails dumpFileDetails) {
     try {
-
       List<String> lines = FileUtils.readLines(threadDumpFile, StandardCharsets.UTF_8);
       List<String> sanitizedLines = this.threadFileSanitizer.sanitiseThreadDumpToParsableLines(lines);
       List<ThreadDetail> threadDetails = this.threadDumpParser.threadLinesToThreadDetails(sanitizedLines);
+      applyDumpDetails(threadDetails, dumpFileDetails);
       return threadDetails;
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException(e);
+    }
+  }
+
+  private void applyDumpDetails(List<ThreadDetail> threadDetails, DumpFileDetails dumpFileDetails) {
+    for (ThreadDetail threadDetail : threadDetails) {
+      threadDetail.setHostname(dumpFileDetails.getHostname());
+      threadDetail.setProcessID(dumpFileDetails.getProcessId());
+      threadDetail.setDumpDate(dumpFileDetails.getFileDate());
+      threadDetail.setServiceName(dumpFileDetails.getJarName());
+      threadDetail.setFileIdentifier(dumpFileDetails.getFileName());
     }
   }
 }

@@ -4,7 +4,9 @@ package org.tools.web.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ThreadDetail")
+@Table(name = "ThreadDetail", indexes = {
+    @Index(columnList = "id", name = "tdump_id"),
+    @Index(columnList = "file_id", name = "file_identifier")})
 public class ThreadDetail {
 
   @Id
@@ -47,6 +49,12 @@ public class ThreadDetail {
 
   @Column(name = "pool_name")
   private String poolName;
+
+  @Column(name = "batch_number")
+  private String batchNumber;
+
+  @Column(name = "file_id")
+  private String fileIdentifier;
 
   public int getId() {
     return id;
@@ -150,6 +158,22 @@ public class ThreadDetail {
 
   public void setPoolName(String poolName) {
     this.poolName = poolName;
+  }
+
+  public String getBatchNumber() {
+    return batchNumber;
+  }
+
+  public void setBatchNumber(String batchNumber) {
+    this.batchNumber = batchNumber;
+  }
+
+  public String getFileIdentifier() {
+    return fileIdentifier;
+  }
+
+  public void setFileIdentifier(String fileIdentifier) {
+    this.fileIdentifier = fileIdentifier;
   }
 }
 

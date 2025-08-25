@@ -167,7 +167,7 @@ public class ThreadDumpParser {
     return input.replaceAll("[a-zA-Z]", "");
   }
 
-  private List<ThreadDetail> threadLinesToThreadDetails(List<String> lines) {
+  public List<ThreadDetail> threadLinesToThreadDetails(List<String> lines) {
     return lines.stream().map(line -> parseThreadLineV2(line)).collect(Collectors.toList());
   }
 }

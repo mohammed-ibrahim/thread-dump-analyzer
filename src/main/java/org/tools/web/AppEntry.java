@@ -3,6 +3,7 @@ package org.tools.web;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.tools.web.dbops.DbUtils;
 
 import java.util.Arrays;
 
@@ -20,7 +21,7 @@ public class AppEntry {
             System.out.println(beanName);
         }
 
-        Importer bean = ctx.getBean(Importer.class);
-        bean.importFile();
+        DbUtils bean = ctx.getBean(DbUtils.class);
+        bean.importFile(null);
     }
 }

@@ -60,13 +60,41 @@ public class ThreadDumpParser {
     return threadDetail;
   }
 
-  private String getPoolName(String name) {
+  public String getPoolName(String name) {
     if (StringUtils.startsWithIgnoreCase(name, "ForkJoin")) {
       int index = name.indexOf("-");
       return name.substring(0, index + 2);
     }
 
-    return null;
+    if (StringUtils.contains(name, "@")) {
+      return name.substring(0, name.indexOf("@"));
+    }
+
+    if (StringUtils.startsWithIgnoreCase(name, "GC") ||
+        StringUtils.startsWithIgnoreCase(name, "VM") ||
+        StringUtils.startsWithIgnoreCase(name, "DestroyJavaVM")) {
+      return name;
+    }
+
+    if (StringUtils.startsWithIgnoreCase(name, "C") &&
+        StringUtils.containsIgnoreCase(name, "CompilerThread")) {
+      return "CompilerThread";
+    }
+
+    if (StringUtils.containsIgnoreCase(name, "-")) {
+      String [] parts = name.split("-");
+      String lastPart = parts[parts.length - 1];
+
+      try {
+        Integer.parseInt(lastPart);
+      } catch (NumberFormatException e) {
+        return name;
+      }
+
+      return name.substring(0, name.length() - lastPart.length() - 1);
+    }
+
+    return name;
   }
 
   private String getThreadState(String line) {

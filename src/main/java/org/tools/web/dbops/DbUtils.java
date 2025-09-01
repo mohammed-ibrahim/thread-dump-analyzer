@@ -36,24 +36,28 @@ public class DbUtils {
     }
   }
 
-  public void importFile(List<ThreadDetail> threadDetailList) {
+  public void importFile(List<ThreadDetail> threadDetailList, String fileName) {
+//    List<ThreadDetail> existingThreadsDumps = loadExistingThreads(fileName);
     addThreadDetailsToDb(threadDetailList);
   }
 
-  public List<ThreadDetail> loadExistingThreads(List<ThreadDetail> threadDetails) {
+  public List<ThreadDetail> loadExistingThreads(String fileName) {
     try (Session session = hibernateUtil.getSessionFactory().openSession()) {
+      Query q=session.createQuery("From ThreadDetail where fileIdentifier=:n");
+      q.setParameter("n", fileName);
+      List<ThreadDetail> list = q.list();
+      return list;
+    }
+  }
 
-      CriteriaBuilder cb = session.getCriteriaBuilder();
-      CriteriaQuery<ThreadDetail> cq = cb.createQuery(ThreadDetail.class);
-      Root<ThreadDetail> root = cq.from(ThreadDetail.class);
-
-      List<String> nameList = threadDetails.stream().map(ThreadDetail::getFileIdentifier).collect(Collectors.toList());
-      cq.where(root.get("fileIdentifier").in(nameList)); // Use the in() method
-
-      TypedQuery<ThreadDetail> query = session.createQuery(cq);
-      List<ThreadDetail> actualThreads = query.getResultList();
-
-      return actualThreads;
+  public List<ThreadDetail> loadExistingThreadsByBatchNumber(String batchNumber) {
+    try (Session session = hibernateUtil.getSessionFactory().openSession()) {
+      Query q=session.createQuery("From ThreadDetail where batchNumber=:n");
+      q.setFirstResult(0);
+      q.setMaxResults(10);
+      q.setParameter("n", batchNumber);
+      List<ThreadDetail> list = q.list();
+      return list;
     }
   }
 }

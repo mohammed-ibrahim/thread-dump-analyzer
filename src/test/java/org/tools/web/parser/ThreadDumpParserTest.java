@@ -1,6 +1,7 @@
 package org.tools.web.parser;
 
 import org.apache.commons.io.IOUtils;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.tools.web.model.ThreadDetail;
 
@@ -12,9 +13,10 @@ import static org.testng.Assert.*;
 
 public class ThreadDumpParserTest {
 
+  private ThreadDumpParser threadDumpParser = new ThreadDumpParser();
+
   @Test
   public void testThreadDump() {
-    ThreadDumpParser threadDumpParser = new ThreadDumpParser();
     String input = "\"AsyncListner background processing\" #327 daemon prio=5 os_prio=0 cpu=14953.13ms elapsed=424135.33s tid=0x000002096f866380 nid=0x178c waiting on condition  [0x000000a8adeff000]    java.lang.Thread.State: TIMED_WAITING (sleeping)";
     ThreadDetail threadDetail = threadDumpParser.parseThreadLineV2(input);
     assertEquals(threadDetail.getName(), "AsyncListner background processing");
@@ -28,4 +30,28 @@ public class ThreadDumpParserTest {
     assertEquals(threadDetail.getWaitingCondition(), "waiting on condition [0x000000a8adeff000]");
     assertEquals(threadDetail.getThreadState(), "java.lang.Thread.State: TIMED_WAITING (sleeping)");
   }
+
+  @DataProvider(name = "poolNameData")
+  public Object[][] getPoolNameData() {
+    return new Object[][] {
+        { "workerthread-1", "workerthread" },
+        { "workerthread-01", "workerthread" },
+        { "workerthread-100", "workerthread" },
+        { "SocketThread@100", "SocketThread" },
+        { "DestroyJavaVM", "DestroyJavaVM" },
+        { "__DEFAULT__", "__DEFAULT__" },
+        { "VM Thread", "VM Thread" },
+        { "VM Periodic Task Thread", "VM Periodic Task Thread" },
+        { "Signal Dispatcher", "Signal Dispatcher" },
+        { "C2 CompilerThread0", "CompilerThread" },
+        { "C2 CompilerThread0", "CompilerThread" }
+    };
+  }
+
+  @Test(dataProvider = "poolNameData")
+  public void testThreadDump(String poolName, String expectedPoolName) {
+    String actualPool = threadDumpParser.getPoolName(poolName);
+    assertEquals(actualPool, expectedPoolName);
+  }
+
 }

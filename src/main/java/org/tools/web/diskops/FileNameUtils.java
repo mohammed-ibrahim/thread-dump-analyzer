@@ -34,7 +34,13 @@ public class FileNameUtils {
   }
 
   public DumpFileDetails getDumpFileDetails(String filename) {
-    String hostDetails = filename.substring(0, filename.indexOf(TIMESTAMP_SEPARATOR));
+    int indexOfTsSeparator = filename.indexOf(TIMESTAMP_SEPARATOR);
+
+    if (indexOfTsSeparator < 0) {
+      throw new IllegalArgumentException("Invalid filename: " + filename);
+    }
+
+    String hostDetails = filename.substring(0, indexOfTsSeparator);
 
     String parts[] = hostDetails.split(SIMPLE_SEPARATOR);
     Integer processId = Integer.parseInt(parts[0]);

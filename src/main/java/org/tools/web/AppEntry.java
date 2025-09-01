@@ -23,5 +23,7 @@ public class AppEntry {
 
         Main main = ctx.getBean(Main.class);
         main.beingImport();
+        System.exit(0);
+
     }
 }

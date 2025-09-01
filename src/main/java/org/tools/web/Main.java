@@ -1,6 +1,7 @@
 package org.tools.web;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,21 +54,33 @@ public class Main {
     File[] files = directory.listFiles(pathname -> pathname.getName().endsWith(".zip"));
 
     for (File zipFile : files) {
+
+      List<ThreadDetail> existingThreadsLimitingTo10 = dbUtils.loadExistingThreadsByBatchNumber(zipFile.getName());
+
+      if (existingThreadsLimitingTo10.size() > 0) {
+        System.out.println("File is already imported: " + zipFile.getName());
+      }
+
       List<File> filesInsideZip = this.zipExtractor.unZipToTempDirectory(zipFile);
+      StopWatch stopWatch = new StopWatch();
+      stopWatch.start();
       for (File threadDumpFile : filesInsideZip) {
         DumpFileDetails dumpFileDetails = fileNameUtils.getDumpFileDetails(threadDumpFile.getName());
-        List<ThreadDetail> threadDetails = processThreadDumpFile(threadDumpFile, dumpFileDetails);
-
+        List<ThreadDetail> threadDetails = processThreadDumpFile(threadDumpFile, dumpFileDetails, zipFile.getName());
+        dbUtils.importFile(threadDetails, dumpFileDetails.getFileName());
       }
+
+      stopWatch.stop();
+      System.out.println("Completed zipfile: " + zipFile.getAbsolutePath() + " time: " + stopWatch.getTime() + " ms");
     }
   }
 
-  private List<ThreadDetail> processThreadDumpFile(File threadDumpFile, DumpFileDetails dumpFileDetails) {
+  private List<ThreadDetail> processThreadDumpFile(File threadDumpFile, DumpFileDetails dumpFileDetails, String zipFileName) {
     try {
       List<String> lines = FileUtils.readLines(threadDumpFile, StandardCharsets.UTF_8);
       List<String> sanitizedLines = this.threadFileSanitizer.sanitiseThreadDumpToParsableLines(lines);
       List<ThreadDetail> threadDetails = this.threadDumpParser.threadLinesToThreadDetails(sanitizedLines);
-      applyDumpDetails(threadDetails, dumpFileDetails);
+      applyDumpDetails(threadDetails, dumpFileDetails, zipFileName);
       return threadDetails;
     } catch (Exception e) {
       e.printStackTrace();
@@ -75,13 +88,14 @@ public class Main {
     }
   }
 
-  private void applyDumpDetails(List<ThreadDetail> threadDetails, DumpFileDetails dumpFileDetails) {
+  private void applyDumpDetails(List<ThreadDetail> threadDetails, DumpFileDetails dumpFileDetails, String zipFileName) {
     for (ThreadDetail threadDetail : threadDetails) {
       threadDetail.setHostname(dumpFileDetails.getHostname());
       threadDetail.setProcessID(dumpFileDetails.getProcessId());
       threadDetail.setDumpDate(dumpFileDetails.getFileDate());
       threadDetail.setServiceName(dumpFileDetails.getJarName());
       threadDetail.setFileIdentifier(dumpFileDetails.getFileName());
+      threadDetail.setBatchNumber(zipFileName);
     }
   }
 }

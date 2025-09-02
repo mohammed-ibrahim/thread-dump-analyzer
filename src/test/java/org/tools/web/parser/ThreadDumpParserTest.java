@@ -24,7 +24,7 @@ public class ThreadDumpParserTest {
     assertEquals(threadDetail.getPriority(), 5);
     assertEquals(threadDetail.getOsPriority(), 0);
     assertEquals(threadDetail.getCpu(), 14953.13f);
-    assertEquals(threadDetail.getElapsed(), 424135.33f);
+    assertEquals(threadDetail.getElapsed(), (424135330f));
     assertEquals(threadDetail.getTid(), "0x000002096f866380");
     assertEquals(threadDetail.getNid(), "0x178c");
     assertEquals(threadDetail.getWaitingCondition(), "waiting on condition [0x000000a8adeff000]");

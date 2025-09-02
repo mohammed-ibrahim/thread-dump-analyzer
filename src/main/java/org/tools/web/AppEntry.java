@@ -10,7 +10,7 @@ import java.util.Arrays;
 @SpringBootApplication
 public class AppEntry {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         ApplicationContext ctx = SpringApplication.run(AppEntry.class, args);
 
         System.out.println("Let's inspect the beans provided by Spring Boot:");
@@ -21,9 +21,12 @@ public class AppEntry {
             System.out.println(beanName);
         }
 
-        Main main = ctx.getBean(Main.class);
-        main.beingImport();
-        System.exit(0);
+//        Main main = ctx.getBean(Main.class);
+//        main.beingImport();
+//        System.exit(0);
+
+        ThreadDiffMain threadDiffMain = ctx.getBean(ThreadDiffMain.class);
+        threadDiffMain.compareDumps();
 
     }
 }

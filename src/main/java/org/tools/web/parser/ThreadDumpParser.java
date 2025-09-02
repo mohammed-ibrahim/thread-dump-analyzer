@@ -49,8 +49,8 @@ public class ThreadDumpParser {
     threadDetail.setThreadNumber(getThreadNumber(subsequentParts));
     threadDetail.setPriority(getTokenWithKeyAsInteger("prio=", subsequentParts, false));
     threadDetail.setOsPriority(getTokenWithKeyAsInteger("os_prio=", subsequentParts, false));
-    threadDetail.setCpu(getTokenWithKeyAsFloat("cpu=", subsequentParts, true));
-    threadDetail.setElapsed(getTokenWithKeyAsFloat("elapsed=", subsequentParts, true));
+    threadDetail.setCpu(parseTimeFieldToMilliseconds("cpu=", subsequentParts));
+    threadDetail.setElapsed(parseTimeFieldToMilliseconds("elapsed=", subsequentParts));
     threadDetail.setTid(getTokenWithKey("tid=", subsequentParts, false));
     threadDetail.setNid(getTokenWithKey("nid=", subsequentParts, false));
     threadDetail.setWaitingCondition(getWaitingCondition(line));
@@ -178,6 +178,23 @@ public class ThreadDumpParser {
     }
 
     return null;
+  }
+
+  private Float parseTimeFieldToMilliseconds(String key, List<String> parts) {
+    String value = getTokenWithKey(key, parts, false);
+
+    Float factor = null;
+    if (value.endsWith("ms")) {
+      factor = 1f;
+    } else if (value.endsWith("s")) {
+      factor = 1000f;
+    } else {
+      throw new RuntimeException("CPU time cannot be parsed: " + value);
+    }
+
+    value = removeAlphabets(value);
+    Float timeFieldInMilliSeconds = Float.parseFloat(value) * factor;
+    return timeFieldInMilliSeconds;
   }
 
   private Float getTokenWithKeyAsFloat(String key, List<String> parts, boolean removeAlphaCharacters) {

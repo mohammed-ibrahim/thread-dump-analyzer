@@ -9,12 +9,10 @@ import org.tools.web.dbops.DbUtils;
 import org.tools.web.diskops.DumpFileDetails;
 import org.tools.web.diskops.FileNameUtils;
 import org.tools.web.model.ThreadDetail;
-import org.tools.web.parser.ThreadDumpParser;
-import org.tools.web.parser.ThreadFileSanitizer;
+import org.tools.web.parser.ThreadDumpFileOrchestrator;
 import org.tools.web.ziputil.ZipExtractor;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
@@ -22,9 +20,7 @@ public class Main {
 
   private ZipExtractor zipExtractor;
 
-  private ThreadDumpParser threadDumpParser;
-
-  private ThreadFileSanitizer threadFileSanitizer;
+  private ThreadDumpFileOrchestrator threadDumpFileOrchestrator;
 
   private FileNameUtils fileNameUtils;
 
@@ -32,13 +28,11 @@ public class Main {
 
   @Autowired
   public Main(ZipExtractor zipExtractor,
-              ThreadFileSanitizer threadFileSanitizer,
-              ThreadDumpParser threadDumpParser,
+              ThreadDumpFileOrchestrator threadDumpFileOrchestrator,
               FileNameUtils fileNameUtils,
               DbUtils dbUtils) {
     this.zipExtractor = zipExtractor;
-    this.threadDumpParser = threadDumpParser;
-    this.threadFileSanitizer = threadFileSanitizer;
+    this.threadDumpFileOrchestrator = threadDumpFileOrchestrator;
     this.fileNameUtils = fileNameUtils;
     this.dbUtils = dbUtils;
   }
@@ -66,36 +60,13 @@ public class Main {
       stopWatch.start();
       for (File threadDumpFile : filesInsideZip) {
         DumpFileDetails dumpFileDetails = fileNameUtils.getDumpFileDetails(threadDumpFile.getName());
-        List<ThreadDetail> threadDetails = processThreadDumpFile(threadDumpFile, dumpFileDetails, zipFile.getName());
+        List<ThreadDetail> threadDetails = this.threadDumpFileOrchestrator.convertThreadDumpFileToThreadList(threadDumpFile, dumpFileDetails, zipFile.getName());
         dbUtils.importFile(threadDetails, dumpFileDetails.getFileName());
       }
 
       stopWatch.stop();
       System.out.println("Completed zipfile: " + zipFile.getAbsolutePath() + " time: " + stopWatch.getTime() + " ms");
-    }
-  }
-
-  private List<ThreadDetail> processThreadDumpFile(File threadDumpFile, DumpFileDetails dumpFileDetails, String zipFileName) {
-    try {
-      List<String> lines = FileUtils.readLines(threadDumpFile, StandardCharsets.UTF_8);
-      List<String> sanitizedLines = this.threadFileSanitizer.sanitiseThreadDumpToParsableLines(lines);
-      List<ThreadDetail> threadDetails = this.threadDumpParser.threadLinesToThreadDetails(sanitizedLines);
-      applyDumpDetails(threadDetails, dumpFileDetails, zipFileName);
-      return threadDetails;
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
-  }
-
-  private void applyDumpDetails(List<ThreadDetail> threadDetails, DumpFileDetails dumpFileDetails, String zipFileName) {
-    for (ThreadDetail threadDetail : threadDetails) {
-      threadDetail.setHostname(dumpFileDetails.getHostname());
-      threadDetail.setProcessID(dumpFileDetails.getProcessId());
-      threadDetail.setDumpDate(dumpFileDetails.getFileDate());
-      threadDetail.setServiceName(dumpFileDetails.getJarName());
-      threadDetail.setFileIdentifier(dumpFileDetails.getFileName());
-      threadDetail.setBatchNumber(zipFileName);
+      this.zipExtractor.cleanup(filesInsideZip);
     }
   }
 }

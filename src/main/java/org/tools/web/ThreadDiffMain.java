@@ -12,9 +12,10 @@ import org.tools.web.parser.ThreadDiffCalculator;
 import org.tools.web.parser.ThreadDumpFileOrchestrator;
 import org.tools.web.ziputil.ZipExtractor;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -99,7 +100,45 @@ public class ThreadDiffMain {
       throw new RuntimeException(e);
     }
 
+    generateThreadLevelReport(sortedFilesByDumpTime, zipFile, reportDir);
+
     this.zipExtractor.cleanup(filesInsideZip);
+  }
+
+  private void generateThreadLevelReport(List<File> sortedFilesByDumpTime, File zipFile, File reportDir) {
+    List<ThreadDetail> buffer = new ArrayList<>();
+    Set<String> allThreadNames = new HashSet<>();
+
+    for (File file : sortedFilesByDumpTime) {
+      List<ThreadDetail> snapShot = getThreadDetails(file, zipFile.getName());
+      buffer.addAll(snapShot);
+
+      snapShot.forEach(a -> allThreadNames.add(a.getNid().toString()));
+    }
+
+    try {
+      Path path = Paths.get(reportDir.toString(), zipFile.getName() + "---thread-level.txt");
+      BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()));
+
+      for (String nid : allThreadNames) {
+        writer.write("\n\n\n\n-----------------------\n\n");
+        writer.write(getDetailsForTheNid(nid, buffer));
+      }
+      writer.close();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private String getDetailsForTheNid(String nid, List<ThreadDetail> buffer) {
+    List<ThreadDetail> allForNid = buffer.stream().filter(t -> t.getNid().equals(nid)).collect(Collectors.toList());
+    List<String> sb = new ArrayList<>();
+
+    for (ThreadDetail td : allForNid) {
+      sb.add(String.format("%s %s %s %s %f", td.getName(), td.getPoolName(), td.getNid(), td.getDumpDate(), td.getCpu()));
+    }
+
+    return StringUtils.join(sb, "\n");
   }
 
   public List<String> getReport(File firstFile, File secondFile, File zipFile, File reportDir) {

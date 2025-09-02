@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Component
 public class ThreadDiffCalculator {
 
-  public void calculateDiff(List<ThreadDetail> oldSnapShot, List<ThreadDetail> newSnapShot, File diffReportFile) {
+  public List<String> calculateDiff(List<ThreadDetail> oldSnapShot, List<ThreadDetail> newSnapShot) {
 
     Map<String, ThreadDetail> oldNidToThreadMapping = oldSnapShot.stream().collect(Collectors.toMap(ThreadDetail::getNid, t -> t));
     Map<String, ThreadDetail> newNidToThreadMapping = newSnapShot.stream().collect(Collectors.toMap(ThreadDetail::getNid, t -> t));
@@ -37,23 +37,20 @@ public class ThreadDiffCalculator {
     }
 
     if (!cpuNotIncreased.isEmpty()) {
-      buffer.add("Cpu not increased: " + StringUtils.join(cpuNotIncreased, ","));
+      List<String> cupNotIncreasedNames = cpuNotIncreased.stream().map(c -> newNidToThreadMapping.get(c).getName()).collect(Collectors.toList());
+      buffer.add("Cpu not increased: " + StringUtils.join(cupNotIncreasedNames, ",\n"));
     }
 
     if (!elapsedNotIncreased.isEmpty()) {
-      buffer.add("Elapsed not increased: " + StringUtils.join(elapsedNotIncreased, ","));
+      List<String> elapsedNotIncreasedNames = elapsedNotIncreased.stream().map(c -> newNidToThreadMapping.get(c).getName()).collect(Collectors.toList());
+      buffer.add("Elapsed not increased: " + StringUtils.join(elapsedNotIncreasedNames, ","));
     }
 
+    if (buffer.isEmpty()) {
+      return Arrays.asList("Dump is normal");
+    }
 
-      try {
-        if (!buffer.isEmpty()) {
-          FileUtils.writeLines(diffReportFile, buffer);
-        } else {
-          FileUtils.writeStringToFile(diffReportFile, "Dump is normal", StandardCharsets.UTF_8);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    return buffer;
   }
 
   public List<String> printIfCpuNotIncreased(List<ThreadDetail> oldSnapShot, List<ThreadDetail> newSnapShot, Map<String, ThreadDetail> oldNidToThreadMapping, Map<String, ThreadDetail> newNidToThreadMapping) {

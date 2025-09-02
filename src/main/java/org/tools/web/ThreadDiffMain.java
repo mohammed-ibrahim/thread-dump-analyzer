@@ -10,12 +10,12 @@ import org.tools.web.diskops.FileNameUtils;
 import org.tools.web.model.ThreadDetail;
 import org.tools.web.parser.ThreadDiffCalculator;
 import org.tools.web.parser.ThreadDumpFileOrchestrator;
-import org.tools.web.parser.ThreadDumpParser;
 import org.tools.web.ziputil.ZipExtractor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -82,26 +82,40 @@ public class ThreadDiffMain {
       throw new RuntimeException(e);
     }
 
+    List<String> buffer = new ArrayList<>();
 
     for (int i = 0; i < sortedFilesByDumpTime.size() - 1; i++) {
       File firstFile = sortedFilesByDumpTime.get(i);
       File secondFile = sortedFilesByDumpTime.get(i + 1);
-      scanForAnomalies(firstFile, secondFile, zipFile, reportDir);
+      List<String> report = getReport(firstFile, secondFile, zipFile, reportDir);
+      buffer.addAll(report);
+    }
+
+
+    try {
+      Path path = Paths.get(reportDir.toString(), zipFile.getName() + "---report.txt");
+      FileUtils.writeLines(path.toFile(), buffer);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
 
     this.zipExtractor.cleanup(filesInsideZip);
   }
 
-  public void scanForAnomalies(File firstFile, File secondFile, File zipFile, File reportDir) {
+  public List<String> getReport(File firstFile, File secondFile, File zipFile, File reportDir) {
     List<ThreadDetail> firstBatch = getThreadDetails(firstFile, zipFile.getName());
     List<ThreadDetail> secondBatch = getThreadDetails(secondFile, zipFile.getName());
-    File diffReportFile = Paths.get(reportDir.toString(), "diff-" + firstFile.getName() + secondFile.getName()).toFile();
+
+    List<String> report = new ArrayList<>();
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
-    this.threadDiffCalculator.calculateDiff(firstBatch, secondBatch, diffReportFile);
+    report.add(String.format("\n\nComparing: %s ::: %s", firstFile.getName(), secondFile.getName()));
+    List<String> diffResult = this.threadDiffCalculator.calculateDiff(firstBatch, secondBatch);
+    report.addAll(diffResult);
     stopWatch.stop();
 
     System.out.println("Finished comparing: " + firstFile + " and " + secondFile + " in " + stopWatch.getTime());
+    return report;
   }
 
   private List<ThreadDetail> getThreadDetails(File threadDumpFile, String zipFileName) {
@@ -113,7 +127,7 @@ public class ThreadDiffMain {
     return (file1, file2) -> {
       Date d1 = this.fileNameUtils.parseTimestampFromFilenameForTxtExtension(file1.getName());
       Date d2 = this.fileNameUtils.parseTimestampFromFilenameForTxtExtension(file2.getName());
-      return d2.compareTo(d1);
+      return d1.compareTo(d2);
     };
   }
 }

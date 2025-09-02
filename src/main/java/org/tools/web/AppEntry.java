@@ -21,12 +21,15 @@ public class AppEntry {
             System.out.println(beanName);
         }
 
-//        Main main = ctx.getBean(Main.class);
-//        main.beingImport();
-//        System.exit(0);
+        if (false) {
+            Main main = ctx.getBean(Main.class);
+            main.beingImport();
+        } else {
+            ThreadDiffMain threadDiffMain = ctx.getBean(ThreadDiffMain.class);
+            threadDiffMain.start();
+        }
 
-        ThreadDiffMain threadDiffMain = ctx.getBean(ThreadDiffMain.class);
-        threadDiffMain.compareDumps();
 
+        System.exit(0);
     }
 }
